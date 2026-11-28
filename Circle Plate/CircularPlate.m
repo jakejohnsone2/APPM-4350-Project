@@ -55,16 +55,16 @@ saveas(gcf, ["circle_pattern_n"+ num2str(our_n) + "_m" + num2str(our_m) + ".png"
 
 % Mode shape of the selected (n,s):  J_n(k r) cos(n*theta).  Use this for n >= 1
 % (a center point force cannot excite those, but a screw-pinned plate can resonate in them).
-% Th = atan2(Y, X);
-% Wms = besselj(our_n, jpf(our_n,our_s)*Rr/R).*cos(our_n*Th);
-% Wms = abs(Wms)/max(abs(Wms(Rr <= R)));
-% Wms(Rr > R | Rr < rc) = NaN;
-% figure;
-% imagesc([-R R], [-R R], Wms, 'AlphaData', ~isnan(Wms)); axis image xy;
-% colormap(flipud(gray)); caxis([0 0.15]);
-% title(sprintf('Mode shape (n = %.0f, s = %.0f), f_{pred} = %.1f Hz', our_n, our_s, f));
-% xlabel('x [m]'); ylabel('y [m]');
-% saveas(gcf, 'circle_mode_shape.png');
+Th = atan2(Y, X);
+Wms = besselj(our_n, jpf(our_n,our_m)*Rr/R).*cos(our_n*Th);
+Wms = abs(Wms)/max(abs(Wms(Rr <= R)));
+Wms(Rr > R | Rr < rc) = NaN;
+figure;
+imagesc([-R R], [-R R], Wms, 'AlphaData', ~isnan(Wms)); axis image xy;
+colormap(flipud(gray)); caxis([0 0.15]);
+title(sprintf('Mode shape (n = %.0f, m = %.0f), f_{pred} = %.1f Hz', our_n, our_m, f));
+xlabel('x [m]'); ylabel('y [m]');
+saveas(gcf, 'circle_mode_shape.png');
 
 %% 5. Finding Closest Mode
 f_meas = 2250;                     % <-- measured frequency [Hz] from the lab

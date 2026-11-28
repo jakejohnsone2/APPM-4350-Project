@@ -5,35 +5,59 @@ clc
 % Solves  lap(W) + (k + i*gamma)^2 W = -delta(x-x0)delta(y-y0),  dW/dn = 0
 % on 0<=x,y<=L with a Fourier cosine series (Report Sec. 2.4, Eqs. 6-7).
 % Light regions in the plot = |W| ~ 0 = where the sand collects.
-clear; clc; close all
+
+
+
 %% 1. Plate properties and frequency -> wave number (Sec. 2.2, Eq. 4)
-E = 69e9;  nu = 0.33;  rho = 2700;  h = .64e-3;   % aluminum -- EDIT to your plate
+% Initializing our constants of the lab plate
+E = 69e9;  nu = 0.33;  rho = 2700;  h = .64e-3;   % aluminum
 L = 0.1334;                                          % side length [m]
 D  = E*h^3/(12*(1 - nu^2));                        % bending stiffness
 cf = sqrt(D/(rho*h));                              % omega = cf*k^2  (from k^4 = rho*h*omega^2/D)
-our_n = 5;
-our_m = 3;
-% Predicted resonances of the model: k_nm^2 = (pi/L)^2 (n^2+m^2)
+
+% Initializing which mode we want to see
+our_n = 4;
+our_m = 4;
+
+% Creating a function to find the resonance frequency using the value of n
+% and m
 fnm = @(n,m) cf*(pi/L)^2*(n.^2 + m.^2)/(2*pi);     % [Hz]
-f     = fnm(our_n,our_m);              % <-- drive frequency [Hz]; replace with a lab value
+
+% Inputing our desire n and m to find the resonance frequency of the mode
+f     = fnm(our_n,our_m);              % [Hz]
+
+% Calculating the frequency
 omega = 2*pi*f;
+
+% Calculating the k value for our system
 k     = (rho*h*omega^2/D)^(1/4);
 %% 2. Numerical settings (Sec. 2.7)
 N    = 40;                     % modes kept per direction (n,m = 0..N)
 Ng   = 500;                    % grid points per side
 gam  = 0.01*pi/L;              % damping gamma [1/m]; keeps resonance finite
-x0   = L/2;  y0 = L/2;         % center drive
-rc   = 0.0026;                  % screw/clamp radius [m] -- measure yours
-if N*pi/L < 2*k
-    warning('N = %d may be too small for k = %.1f 1/m. Increase N.', N, k);
-end
+x0   = L/2;  y0 = L/2;         % center drive location
+rc   = 0.0026;                 % screw radius [m]
+
 %% 3. Series solution (Eq. 7)
+% Creating our grid coordinates for both x and y
 x = linspace(0, L, Ng);
+
+% Creating the n and values up to our max n
 n = 0:N;
+
+% Initializing the constants
 c = [1, 0.5*ones(1, N)];                         % c_0 = 1, c_n = 1/2
+
+% Creating a meshgrid for each respective n and m pair
 [NN, MM] = meshgrid(n, n);                       % columns = n, rows = m
+
+% Calculating the value of k for each n and m pair
 knm2 = (pi/L)^2*(NN.^2 + MM.^2);
+
+% Finite screw correction
 xd = sqrt(knm2)*rc;                              % finite clamp: disk-average of the source
+
+
 Fd = ones(size(xd));  nz = xd > 0;               % mean-value factor 2*J1(x)/x for Helmholtz modes
 Fd(nz) = 2*besselj(1, xd(nz))./xd(nz);
 phi0 = cos(NN*pi*x0/L).*cos(MM*pi*y0/L).*Fd;     % phi_nm seen by the screw
