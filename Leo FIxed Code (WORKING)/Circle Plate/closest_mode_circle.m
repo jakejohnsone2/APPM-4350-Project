@@ -14,19 +14,40 @@ function T = closest_mode_circle(f_meas, cf, R, nShow)
 
 if nargin < 4 || isempty(nShow), nShow = 1; end
 
+% Pre allocating the matrix
 rows = [];
+
+% For loop that goes through each of our lab frequencies
 for f = f_meas(:).'
-    xneed = R*sqrt(2*pi*f/cf);                  % j' value at the drive frequency
-    smax  = ceil(2*xneed/pi) + 3;               % zeros of J_1 are about pi apart
-    jp    = circ_roots(0, smax);                % zeros of J_0'
+    % Finding the value of the derivative of the Bessel function at our
+    % frequency
+    xneed = R*sqrt(2*pi*f/cf);
+
+    % Setting the max for the roots were going to search
+    smax  = ceil(2*xneed/pi) + 3;            
+
+    % Calculating the zeros of our Bessel Function
+    jp    = circ_roots(0, smax);     
+
+    % Setting the index of each root
     s     = (1:smax).';
+
+    % Predicting the frequency of our surviving modes
     fpred = cf*(jp(1, :).'/R).^2/(2*pi);
+
+    % Finding the error between the predicted frequency and lab frequency
     err   = 100*(fpred - f)/f;
+
+
+    % Sorting by the smallest error
     [~, idx] = sort(abs(err));
     idx = idx(1:min(nShow, numel(idx)));
-
+    
+    % Appending the matrix such that we are only left with one candidate
+    % per lab frequency
     rows = [rows; repmat(f, numel(idx), 1), zeros(numel(idx), 1), s(idx), fpred(idx), err(idx)]; %#ok<AGROW>
 end
 
+% Outputing the final table
 T = array2table(rows, 'VariableNames', {'f_meas_Hz', 'n', 's', 'f_pred_Hz', 'error_pct'});
 end

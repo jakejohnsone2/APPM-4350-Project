@@ -1,7 +1,6 @@
 %% SquarePlate.m -- Chladni figures on a free-edge square plate, center drive
-% Model (Report Sec. 2.3-2.4):
 %   lap(W) + (k + i*gamma)^2 W = -delta(x-x0) delta(y-y0),   dW/dn = 0 on the edges
-% solved with the Fourier cosine series, Eq. (10).
+% solved with the Fourier cosine series.
 %
 % The center screw is modeled as a point force (averaged over the screw head).
 % A mode is only driven if it is nonzero at the screw, phi_nm(x0,y0) ~= 0, which at
@@ -12,14 +11,14 @@
 % Needs closest_mode_square.m in the same folder.
 clear; clc; close all
 
-%% 1. Plate properties and frequency -> wave number (Sec. 2.2)
+%% 1. Plate properties and frequency -> wave number
 % Setting/Calculating our initial variables
 E   = 69e9;  nu = 0.33;  rho = 2700;  h = 0.64e-3;   % aluminum
 L   = 0.1334;                                        % side length [m]
 D   = E*h^3/(12*(1 - nu^2));                         % bending stiffness
 cf  = sqrt(D/(rho*h));                               % omega = cf*k^2
 
-%% 2. Numerical settings (Sec. 2.7
+%% 2. Numerical settings
 % Setting numerical settings so simulation isn't too big
 P.N   = 40;                 % modes kept per direction (n,m = 0..N)
 P.Ng  = 500;                % grid points per side
@@ -37,7 +36,7 @@ for f = f_lab
     % Finding the response given the respective frequency
     [W, x] = square_response(f, L, cf, P);
     % Finding the closest mode to our response
-    M = closest_mode_square(f, L, cf, P.x0, P.y0, 1);   % nearest driven mode
+    M = closest_mode_square(f, L, cf, P.x0, P.y0, 1);
 
     % Taking the magnitude of our complex field
     Wabs = abs(W)/max(abs(W(:)));
@@ -63,7 +62,7 @@ disp(T);
 
 %% -------------------------------Functions--------------------------------
 function [W, x] = square_response(f, L, cf, P)
-%SQUARE_RESPONSE  |W| on an Ng x Ng grid for a center force at frequency f [Hz].
+
     k = sqrt(2*pi*f/cf);                             % from omega = cf*k^2
     if P.N*pi/L < 2*k
         warning('N = %d may be too small for k = %.1f 1/m. Increase N.', P.N, k);

@@ -17,22 +17,46 @@ function T = closest_mode_square(f_meas, L, cf, x0, y0, nShow)
 
 if nargin < 6 || isempty(nShow), nShow = 1; end
 
+% Pre allocating the matrix
 rows = [];
-for f = f_meas(:).'
-    k2drive = 2*pi*f/cf;                        % k^2 at the drive frequency
-    Nmax    = ceil(L/pi*sqrt(2*k2drive)) + 2;   % search up to twice the drive k^2
-    [n, m]  = meshgrid(0:Nmax);
-    driven  = abs(cos(n*pi*x0/L).*cos(m*pi*y0/L)) > 1e-9;
-    keep    = (n >= m) & (n + m > 0) & driven;
-    n = n(keep);  m = m(keep);
 
+% For loop that goes through each of our lab frequencies
+for f = f_meas(:).'
+    % Calculating k squared at the respective frequency
+    k2drive = 2*pi*f/cf;                      
+
+    % Setting the max n for how far we are going to search
+    Nmax    = ceil(L/pi*sqrt(2*k2drive)) + 2; 
+
+    % Creaing a meshgrid for the ns and ms
+    [n, m]  = meshgrid(0:Nmax);
+
+    % Finding the modes value at the origin for the respective frequency.
+    % Filters out the odd numbers as for even numbers the value will be 0.
+    driven  = abs(cos(n*pi*x0/L).*cos(m*pi*y0/L)) > 1e-9;
+    
+    % Filtering out such that we are left with only one of each pair, no
+    % (0,0) mode, and the modes that cant be excited (odd modes)
+    keep    = (n >= m) & (n + m > 0) & driven;
+
+    % Reducing so we are only left with the filtered values
+    n = n(keep);  m = m(keep);
+    
+    % Predicting the frequency of our surviving modes
     fpred = cf*(pi/L)^2*(n.^2 + m.^2)/(2*pi);
+
+    % Finding the error between the predicted frequency and lab frequency
     err   = 100*(fpred - f)/f;
+
+    % Sorting by the smallest error
     [~, idx] = sort(abs(err));
     idx = idx(1:min(nShow, numel(idx)));
-
+    
+    % Appending the matrix such that we are only left with one candidate
+    % per lab frequency
     rows = [rows; repmat(f, numel(idx), 1), n(idx), m(idx), fpred(idx), err(idx)]; %#ok<AGROW>
 end
 
+% Outputing the final table
 T = array2table(rows, 'VariableNames', {'f_meas_Hz', 'n', 'm', 'f_pred_Hz', 'error_pct'});
 end
